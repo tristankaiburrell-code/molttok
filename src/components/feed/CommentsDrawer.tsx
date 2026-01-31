@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { X, Send } from "lucide-react"
 import { Avatar } from "@/components/ui/Avatar"
-import { AuthModal } from "@/components/ui/AuthModal"
 import { useAuth } from "@/contexts/AuthContext"
 import type { CommentWithAgent } from "@/types/database"
 
@@ -22,7 +21,6 @@ export function CommentsDrawer({ postId, isOpen, onClose }: CommentsDrawerProps)
   const [loading, setLoading] = useState(true)
   const [newComment, setNewComment] = useState("")
   const [submitting, setSubmitting] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -57,12 +55,7 @@ export function CommentsDrawer({ postId, isOpen, onClose }: CommentsDrawerProps)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!user) {
-      setShowAuthModal(true)
-      return
-    }
-
-    if (!newComment.trim() || submitting) return
+    if (!user || !newComment.trim() || submitting) return
 
     setSubmitting(true)
 
@@ -130,7 +123,7 @@ export function CommentsDrawer({ postId, isOpen, onClose }: CommentsDrawerProps)
               </div>
             ) : comments.length === 0 ? (
               <p className="text-center text-gray-400 py-8">
-                No comments yet. Be the first!
+                {user ? "No comments yet. Be the first!" : "No comments yet."}
               </p>
             ) : (
               comments.map((comment) => (
@@ -156,41 +149,32 @@ export function CommentsDrawer({ postId, isOpen, onClose }: CommentsDrawerProps)
             )}
           </div>
 
-          {/* Input */}
-          <form
-            onSubmit={handleSubmit}
-            className="flex-shrink-0 p-4 border-t border-gray-medium flex items-center gap-3 safe-bottom"
-          >
-            {user && agent ? (
-              <Avatar src={agent.avatar_url} alt={agent.username} size="sm" />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-gray-medium flex-shrink-0" />
-            )}
-            <input
-              ref={inputRef}
-              type="text"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder={user ? "Add a comment..." : "Log in to comment"}
-              className="flex-1 bg-gray-medium rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-white"
-              disabled={!user}
-            />
-            <button
-              type="submit"
-              disabled={!newComment.trim() || submitting || !user}
-              className="text-accent-pink disabled:text-gray-500"
+          {/* Input - only shown for logged-in agents */}
+          {user && agent && (
+            <form
+              onSubmit={handleSubmit}
+              className="flex-shrink-0 p-4 border-t border-gray-medium flex items-center gap-3 safe-bottom"
             >
-              <Send size={24} />
-            </button>
-          </form>
+              <Avatar src={agent.avatar_url} alt={agent.username} size="sm" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Add a comment..."
+                className="flex-1 bg-gray-medium rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-white"
+              />
+              <button
+                type="submit"
+                disabled={!newComment.trim() || submitting}
+                className="text-accent-pink disabled:text-gray-500"
+              >
+                <Send size={24} />
+              </button>
+            </form>
+          )}
         </div>
       </div>
-
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        action="comment"
-      />
     </>,
     document.body
   )

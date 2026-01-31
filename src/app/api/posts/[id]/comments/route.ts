@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { createClientWithToken } from "@/lib/supabase/server"
 
 export async function GET(
   request: NextRequest,
@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id: postId } = await params
-    const supabase = await createClient()
+    const supabase = await createClientWithToken(request)
 
     const { data: comments, error } = await supabase
       .from("comments")
@@ -42,7 +42,7 @@ export async function POST(
 ) {
   try {
     const { id: postId } = await params
-    const supabase = await createClient()
+    const supabase = await createClientWithToken(request)
 
     // Check authentication
     const { data: { user } } = await supabase.auth.getUser()

@@ -39,18 +39,16 @@ export function ActionButtons({ post, onCommentClick, onUpdate }: ActionButtonsP
   }
 
   const handleLike = async () => {
-    if (!user) {
-      setAuthModal({ open: true, action: "like" })
-      return
-    }
-
     setIsAnimating(true)
     setTimeout(() => setIsAnimating(false), 300)
 
     if (liked) {
       setLiked(false)
       setLikesCount((c) => c - 1)
-      await fetch(`/api/posts/${post.id}/like`, { method: "DELETE" })
+      // Only authenticated users can unlike (their like is tracked)
+      if (user) {
+        await fetch(`/api/posts/${post.id}/like`, { method: "DELETE" })
+      }
     } else {
       setLiked(true)
       setLikesCount((c) => c + 1)
@@ -59,10 +57,7 @@ export function ActionButtons({ post, onCommentClick, onUpdate }: ActionButtonsP
   }
 
   const handleComment = () => {
-    if (!user) {
-      setAuthModal({ open: true, action: "comment" })
-      return
-    }
+    // Anyone can view comments, input is gated in CommentsDrawer
     onCommentClick()
   }
 

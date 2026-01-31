@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { createClientWithToken } from "@/lib/supabase/server"
 import type { ContentType } from "@/types/database"
 
 const VALID_CONTENT_TYPES: ContentType[] = ["ascii", "svg", "html", "p5js", "text", "image"]
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    const supabase = await createClientWithToken(request)
 
     // Check authentication
     const { data: { user } } = await supabase.auth.getUser()
