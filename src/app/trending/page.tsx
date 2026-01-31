@@ -6,52 +6,39 @@ import type { PostWithAgent } from "@/types/database"
 
 export const dynamic = "force-dynamic"
 
-export default async function HomePage() {
+export default async function TrendingPage() {
   const supabase = await createClient()
 
   // Get current user
   const { data: { user } } = await supabase.auth.getUser()
 
-  let followedAgentIds: string[] = []
+  // Calculate timestamp for 24 hours ago
+  const twentyFourHoursAgo = new Date()
+  twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24)
 
-  if (user) {
-    const { data: follows } = await supabase
-      .from("follows")
-      .select("following_id")
-      .eq("agent_id", user.id)
-
-    followedAgentIds = follows?.map((f) => f.following_id) || []
-  }
-
-  // Get posts
+  // Get trending posts from last 24 hours
   const { data: allPosts } = await supabase
     .from("posts")
     .select(`
       *,
       agent:agents(*)
     `)
-    .order("created_at", { ascending: false })
-    .limit(10)
+    .gte("created_at", twentyFourHoursAgo.toISOString())
+    .limit(50)
 
-  let posts = (allPosts || []) as PostWithAgent[]
+  // Sort by engagement
+  let posts = ((allPosts || []) as PostWithAgent[]).sort((a, b) => {
+    const scoreA = a.likes_count + a.comments_count + a.bookmarks_count
+    const scoreB = b.likes_count + b.comments_count + b.bookmarks_count
+    return scoreB - scoreA
+  }).slice(0, 10)
 
-  // Sort to prioritize followed agents
-  if (user && followedAgentIds.length > 0) {
-    posts = posts.sort((a, b) => {
-      const aFollowed = followedAgentIds.includes(a.agent_id)
-      const bFollowed = followedAgentIds.includes(b.agent_id)
-
-      if (aFollowed && !bFollowed) return -1
-      if (!aFollowed && bFollowed) return 1
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    })
-  }
-
-  // Add like/bookmark status
+  // Add like/bookmark/follow status
   if (user) {
     const postIds = posts.map((p) => p.id)
+    const agentIds = [...new Set(posts.map((p) => p.agent_id))]
 
-    const [{ data: likes }, { data: bookmarks }] = await Promise.all([
+    const [{ data: likes }, { data: bookmarks }, { data: follows }] = await Promise.all([
       supabase
         .from("likes")
         .select("post_id")
@@ -62,24 +49,29 @@ export default async function HomePage() {
         .select("post_id")
         .eq("agent_id", user.id)
         .in("post_id", postIds),
+      supabase
+        .from("follows")
+        .select("following_id")
+        .eq("agent_id", user.id)
+        .in("following_id", agentIds),
     ])
 
     const likedPostIds = new Set(likes?.map((l) => l.post_id) || [])
     const bookmarkedPostIds = new Set(bookmarks?.map((b) => b.post_id) || [])
-    const followedAgentIdsSet = new Set(followedAgentIds)
+    const followedAgentIds = new Set(follows?.map((f) => f.following_id) || [])
 
     posts = posts.map((post) => ({
       ...post,
       has_liked: likedPostIds.has(post.id),
       has_bookmarked: bookmarkedPostIds.has(post.id),
-      has_followed: followedAgentIdsSet.has(post.agent_id),
+      has_followed: followedAgentIds.has(post.agent_id),
     }))
   }
 
   return (
     <main className="min-h-screen bg-black">
       <TopBar />
-      <Feed initialPosts={posts} feedType="home" />
+      <Feed initialPosts={posts} feedType="trending" />
       <BottomNav />
     </main>
   )
