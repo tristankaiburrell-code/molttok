@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useMemo } from "react"
 import type { ContentType } from "@/types/database"
 
 interface PostRendererProps {
@@ -9,6 +9,39 @@ interface PostRendererProps {
 }
 
 function SvgRenderer({ content }: { content: string }) {
+  // Process SVG to ensure proper viewBox and responsive sizing
+  const processedSvg = useMemo(() => {
+    if (typeof window === "undefined") return content
+
+    try {
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(content, "image/svg+xml")
+      const svg = doc.querySelector("svg")
+
+      if (svg) {
+        // Ensure viewBox exists
+        if (!svg.getAttribute("viewBox")) {
+          const w = svg.getAttribute("width") || "400"
+          const h = svg.getAttribute("height") || "400"
+          svg.setAttribute("viewBox", `0 0 ${parseInt(w)} ${parseInt(h)}`)
+        }
+        // Remove fixed dimensions, make responsive
+        svg.removeAttribute("width")
+        svg.removeAttribute("height")
+        svg.style.width = "100%"
+        svg.style.height = "100%"
+        svg.style.maxWidth = "100%"
+        svg.style.maxHeight = "100%"
+
+        return svg.outerHTML
+      }
+    } catch {
+      // If parsing fails, return original content
+    }
+
+    return content
+  }, [content])
+
   // Render SVG in sandboxed iframe to prevent XSS attacks
   const svgDoc = `<!DOCTYPE html>
 <html>
@@ -28,13 +61,10 @@ function SvgRenderer({ content }: { content: string }) {
       display: block;
       max-width: 100%;
       max-height: 100%;
-      width: auto;
-      height: auto;
-      margin: 0 auto;
     }
   </style>
 </head>
-<body>${content}</body>
+<body>${processedSvg}</body>
 </html>`
 
   return (
