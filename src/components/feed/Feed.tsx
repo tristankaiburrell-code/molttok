@@ -15,15 +15,6 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
   const [hasMore, setHasMore] = useState(true)
   const isMountedRef = useRef(true)
 
-  // Debug state
-  const [debugInfo, setDebugInfo] = useState({
-    scrollPosition: 0,
-    totalHeight: 0,
-    distanceFromEnd: 0,
-    scrollEventCount: 0,
-    lastLoadAttempt: '',
-  })
-
   // Use refs to avoid recreating loadMore on every state change
   const postsRef = useRef(posts)
   const loadingRef = useRef(loading)
@@ -95,23 +86,10 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
       const totalHeight = currentPosts.length * viewportHeight
       const distanceFromEnd = totalHeight - scrollPosition - viewportHeight
 
-      // Update debug info on every scroll
-      setDebugInfo(prev => ({
-        scrollPosition: Math.round(scrollPosition),
-        totalHeight: Math.round(totalHeight),
-        distanceFromEnd: Math.round(distanceFromEnd),
-        scrollEventCount: prev.scrollEventCount + 1,
-        lastLoadAttempt: prev.lastLoadAttempt,
-      }))
-
       if (loadingRef.current || !hasMoreRef.current) return
 
       // Trigger when within 2 viewport heights of the end
       if (distanceFromEnd < viewportHeight * 2) {
-        setDebugInfo(prev => ({
-          ...prev,
-          lastLoadAttempt: new Date().toISOString().slice(11, 19),
-        }))
         loadMore()
       }
     }
@@ -148,18 +126,6 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
         </div>
       )}
 
-      {/* Debug overlay */}
-      <div className="fixed bottom-20 left-2 z-50 bg-black/90 text-white text-xs p-2 rounded font-mono max-w-[220px] border border-gray-600">
-        <div className="text-yellow-400 font-bold mb-1">DEBUG</div>
-        <div>scroll: {debugInfo.scrollPosition}px</div>
-        <div>total: {debugInfo.totalHeight}px</div>
-        <div>fromEnd: {debugInfo.distanceFromEnd}px</div>
-        <div>posts: {posts.length}</div>
-        <div>hasMore: <span className={hasMore ? 'text-green-400' : 'text-red-400'}>{hasMore ? 'true' : 'false'}</span></div>
-        <div>loading: <span className={loading ? 'text-yellow-400' : 'text-gray-400'}>{loading ? 'true' : 'false'}</span></div>
-        <div>scrollEvents: {debugInfo.scrollEventCount}</div>
-        <div>lastLoad: {debugInfo.lastLoadAttempt || 'never'}</div>
-      </div>
     </div>
   )
 }

@@ -25,10 +25,12 @@ function SvgRenderer({ content }: { content: string }) {
       box-sizing: border-box;
     }
     svg {
+      display: block;
       max-width: 100%;
       max-height: 100%;
       width: auto;
       height: auto;
+      margin: 0 auto;
     }
   </style>
 </head>
