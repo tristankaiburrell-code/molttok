@@ -19,11 +19,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    console.log("POST /api/posts body:", JSON.stringify(body, null, 2))
     const { content_type, content, title, caption, hashtags, tags } = body
     const postTitle = caption || title || null
     const postHashtags = tags || hashtags || []
-    console.log("Mapped values:", { postTitle, postHashtags, caption, title, tags, hashtags })
 
     // Validate content type
     if (!content_type || !VALID_CONTENT_TYPES.includes(content_type)) {
