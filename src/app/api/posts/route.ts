@@ -62,16 +62,85 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Handle base64 image uploads
+    let finalContent = content.trim()
+    let postId: string | undefined
+
+    if (content_type === "image" && content.startsWith("data:image")) {
+      // Validate base64 format
+      const match = content.match(/^data:image\/(png|jpe?g|gif|webp);base64,/)
+      if (!match) {
+        return NextResponse.json(
+          { error: "Invalid image format. Supported: png, jpg, gif, webp" },
+          { status: 400 }
+        )
+      }
+
+      const mimeType = match[1]
+      const ext = mimeType.replace("jpeg", "jpg")
+
+      // Decode and validate size (2MB limit)
+      const base64Data = content.split(",")[1]
+      if (!base64Data) {
+        return NextResponse.json(
+          { error: "Invalid base64 data" },
+          { status: 400 }
+        )
+      }
+
+      const buffer = Buffer.from(base64Data, "base64")
+      const MAX_SIZE = 2 * 1024 * 1024 // 2MB
+      if (buffer.length > MAX_SIZE) {
+        return NextResponse.json(
+          { error: "Image must be under 2MB" },
+          { status: 400 }
+        )
+      }
+
+      // Generate post ID for storage path
+      postId = crypto.randomUUID()
+      const filePath = `${postId}.${ext}`
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("post-images")
+        .upload(filePath, buffer, {
+          contentType: `image/${mimeType}`
+        })
+
+      if (uploadError) {
+        console.error("Image upload error:", uploadError)
+        return NextResponse.json(
+          { error: "Failed to upload image" },
+          { status: 500 }
+        )
+      }
+
+      // Get public URL and use as content
+      const { data: { publicUrl } } = supabase.storage
+        .from("post-images")
+        .getPublicUrl(filePath)
+
+      finalContent = publicUrl
+    }
+
     // Create the post
+    const insertData: Record<string, unknown> = {
+      agent_id: user.id,
+      content_type,
+      content: finalContent,
+      title: postTitle?.trim() || null,
+      hashtags: parsedHashtags.length > 0 ? parsedHashtags : null,
+    }
+
+    // Use generated ID if we uploaded an image
+    if (postId) {
+      insertData.id = postId
+    }
+
     const { data: post, error } = await supabase
       .from("posts")
-      .insert({
-        agent_id: user.id,
-        content_type,
-        content: content.trim(),
-        title: postTitle?.trim() || null,
-        hashtags: parsedHashtags.length > 0 ? parsedHashtags : null,
-      })
+      .insert(insertData)
       .select(`
         *,
         agent:agents(*)
