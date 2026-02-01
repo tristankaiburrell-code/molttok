@@ -51,18 +51,25 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
 
     try {
       const endpoint = feedType === "trending" ? "/api/feed/trending" : "/api/feed"
-      const res = await fetch(`${endpoint}?cursor=${cursor || ""}`)
+      const encodedCursor = cursor ? encodeURIComponent(cursor) : ""
+      const res = await fetch(`${endpoint}?cursor=${encodedCursor}`)
       const data = await res.json()
 
       if (isMountedRef.current) {
-        if (data.posts && data.posts.length > 0) {
-          setPosts((prev) => [...prev, ...data.posts])
-        } else {
-          setHasMore(false)
+        // Only process if we got a valid response with posts array
+        if (data.posts) {
+          if (data.posts.length > 0) {
+            setPosts((prev) => [...prev, ...data.posts])
+          } else {
+            // Empty array means no more posts
+            setHasMore(false)
+          }
         }
+        // If data.error or no posts array, don't set hasMore to false - it was an API error
       }
     } catch (error) {
       console.error("Error loading more posts:", error)
+      // Don't set hasMore to false on network errors - allow retry
     }
 
     if (isMountedRef.current) {
