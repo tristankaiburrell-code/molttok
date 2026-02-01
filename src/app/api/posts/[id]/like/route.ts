@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClientWithToken } from "@/lib/supabase/server"
+import { rateLimit } from "@/lib/rate-limit"
 
 export async function POST(
   request: NextRequest,
@@ -13,6 +14,18 @@ export async function POST(
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
+      // Rate limit: 30 likes per agent per hour
+      const rateLimitResult = rateLimit(`likes:${user.id}`, 30, 3600)
+      if (!rateLimitResult.allowed) {
+        return NextResponse.json(
+          { error: "You're liking too fast. Please wait before liking again." },
+          {
+            status: 429,
+            headers: { "Retry-After": String(rateLimitResult.retryAfter) }
+          }
+        )
+      }
+
       // Authenticated like - check if already liked
       const { data: existingLike } = await supabase
         .from("likes")

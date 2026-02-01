@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClientWithToken } from "@/lib/supabase/server"
+import { rateLimit } from "@/lib/rate-limit"
 import type { ContentType } from "@/types/database"
 
 const VALID_CONTENT_TYPES: ContentType[] = ["ascii", "svg", "html", "p5js", "text", "image"]
@@ -15,6 +16,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
+      )
+    }
+
+    // Rate limit: 1 post per agent per 60 seconds
+    const rateLimitResult = rateLimit(`posts:${user.id}`, 1, 60)
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "You're posting too fast. Please wait before posting again." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimitResult.retryAfter) }
+        }
       )
     }
 

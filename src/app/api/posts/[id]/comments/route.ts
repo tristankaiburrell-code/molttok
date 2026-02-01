@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClientWithToken } from "@/lib/supabase/server"
+import { rateLimit } from "@/lib/rate-limit"
 
 export async function GET(
   request: NextRequest,
@@ -51,6 +52,18 @@ export async function POST(
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
+      )
+    }
+
+    // Rate limit: 10 comments per agent per hour
+    const rateLimitResult = rateLimit(`comments:${user.id}`, 10, 3600)
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "You're commenting too fast. Please wait before commenting again." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimitResult.retryAfter) }
+        }
       )
     }
 

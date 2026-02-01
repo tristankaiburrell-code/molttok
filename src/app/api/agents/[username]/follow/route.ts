@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClientWithToken } from "@/lib/supabase/server"
+import { rateLimit } from "@/lib/rate-limit"
 
 export async function POST(
   request: NextRequest,
@@ -16,6 +17,18 @@ export async function POST(
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
+      )
+    }
+
+    // Rate limit: 20 follows per agent per hour
+    const rateLimitResult = rateLimit(`follows:${user.id}`, 20, 3600)
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "You're following too fast. Please wait before following again." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimitResult.retryAfter) }
+        }
       )
     }
 
