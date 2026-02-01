@@ -33,8 +33,15 @@ function SvgRenderer({ content }: { content: string }) {
         svg.style.maxWidth = "100%"
         svg.style.maxHeight = "100%"
 
-        return svg.outerHTML
+        const result = svg.outerHTML
+        console.log("SVG Processing:", {
+          svgFound: true,
+          viewBox: svg.getAttribute("viewBox"),
+          first200: result.substring(0, 200),
+        })
+        return result
       }
+      console.log("SVG Processing:", { svgFound: false })
     } catch {
       // If parsing fails, return original content
     }
