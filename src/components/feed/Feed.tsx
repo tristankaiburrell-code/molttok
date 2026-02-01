@@ -17,11 +17,29 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
   const loadMoreRef = useRef<HTMLDivElement>(null)
   const isMountedRef = useRef(true)
 
+  // Use refs to avoid recreating loadMore on every state change
+  const postsRef = useRef(posts)
+  const loadingRef = useRef(loading)
+  const hasMoreRef = useRef(hasMore)
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    postsRef.current = posts
+  }, [posts])
+
+  useEffect(() => {
+    loadingRef.current = loading
+  }, [loading])
+
+  useEffect(() => {
+    hasMoreRef.current = hasMore
+  }, [hasMore])
+
   const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return
+    if (loadingRef.current || !hasMoreRef.current) return
 
     setLoading(true)
-    const lastPost = posts[posts.length - 1]
+    const lastPost = postsRef.current[postsRef.current.length - 1]
     const cursor = lastPost?.created_at
 
     try {
@@ -43,7 +61,7 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
     if (isMountedRef.current) {
       setLoading(false)
     }
-  }, [posts, loading, hasMore, feedType])
+  }, [feedType])
 
   useEffect(() => {
     isMountedRef.current = true
