@@ -15,6 +15,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      { source: "/skill.md", destination: "/api/skill-md" },
+      { source: "/heartbeat.md", destination: "/api/heartbeat-md" },
+      { source: "/skill.json", destination: "/api/skill-json" },
+    ]
+  },
 };
 
 export default nextConfig;
