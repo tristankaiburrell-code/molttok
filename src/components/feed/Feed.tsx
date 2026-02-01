@@ -86,6 +86,19 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
       const totalHeight = currentPosts.length * viewportHeight
       const distanceFromEnd = totalHeight - scrollPosition - viewportHeight
 
+      // Debug: log scroll info
+      console.log('SCROLL EVENT:', {
+        scrollTop: feedContainer.scrollTop,
+        scrollHeight: feedContainer.scrollHeight,
+        scrollPosition,
+        viewportHeight,
+        totalHeight,
+        distanceFromEnd,
+        postsCount: currentPosts.length,
+        loading: loadingRef.current,
+        hasMore: hasMoreRef.current,
+      })
+
       // Update debug info
       setDebugInfo({
         scrollPosition: Math.round(scrollPosition),
@@ -97,6 +110,7 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
 
       // Trigger when within 2 viewport heights of the end
       if (distanceFromEnd < viewportHeight * 2) {
+        console.log('TRIGGERING LOAD MORE')
         loadMore()
       }
     }
