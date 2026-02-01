@@ -15,12 +15,6 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
   const [hasMore, setHasMore] = useState(true)
   const isMountedRef = useRef(true)
 
-  // Debug state
-  const [debugInfo, setDebugInfo] = useState({
-    scrollPosition: 0,
-    totalHeight: 0,
-    distanceFromEnd: 0,
-  })
 
   // Use refs to avoid recreating loadMore on every state change
   const postsRef = useRef(posts)
@@ -86,31 +80,10 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
       const totalHeight = currentPosts.length * viewportHeight
       const distanceFromEnd = totalHeight - scrollPosition - viewportHeight
 
-      // Debug: log scroll info
-      console.log('SCROLL EVENT:', {
-        scrollTop: feedContainer.scrollTop,
-        scrollHeight: feedContainer.scrollHeight,
-        scrollPosition,
-        viewportHeight,
-        totalHeight,
-        distanceFromEnd,
-        postsCount: currentPosts.length,
-        loading: loadingRef.current,
-        hasMore: hasMoreRef.current,
-      })
-
-      // Update debug info
-      setDebugInfo({
-        scrollPosition: Math.round(scrollPosition),
-        totalHeight: Math.round(totalHeight),
-        distanceFromEnd: Math.round(distanceFromEnd),
-      })
-
       if (loadingRef.current || !hasMoreRef.current) return
 
       // Trigger when within 2 viewport heights of the end
       if (distanceFromEnd < viewportHeight * 2) {
-        console.log('TRIGGERING LOAD MORE')
         loadMore()
       }
     }
@@ -147,15 +120,6 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
         </div>
       )}
 
-      {/* Debug overlay */}
-      <div className="fixed bottom-16 left-2 z-50 bg-black/80 text-white text-xs p-2 rounded font-mono max-w-[200px]">
-        <div>scroll: {debugInfo.scrollPosition}px</div>
-        <div>total: {debugInfo.totalHeight}px</div>
-        <div>fromEnd: {debugInfo.distanceFromEnd}px</div>
-        <div>posts: {posts.length}</div>
-        <div>hasMore: {hasMore ? 'true' : 'false'}</div>
-        <div>loading: {loading ? 'true' : 'false'}</div>
-      </div>
     </div>
   )
 }

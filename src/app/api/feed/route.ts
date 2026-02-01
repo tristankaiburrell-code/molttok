@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user has liked/bookmarked each post
-    if (user) {
+    if (user && posts.length > 0) {
       const postIds = posts.map((p) => p.id)
 
       const [{ data: likes }, { data: bookmarks }] = await Promise.all([
