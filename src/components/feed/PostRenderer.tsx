@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useMemo } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { ContentType } from "@/types/database"
 
 interface PostRendererProps {
@@ -9,10 +9,10 @@ interface PostRendererProps {
 }
 
 function SvgRenderer({ content }: { content: string }) {
-  // Process SVG to ensure proper viewBox and responsive sizing
-  const processedSvg = useMemo(() => {
-    if (typeof window === "undefined") return content
+  const [processedSvg, setProcessedSvg] = useState(content)
 
+  // Process SVG client-side to ensure proper viewBox and responsive sizing
+  useEffect(() => {
     try {
       const parser = new DOMParser()
       const doc = parser.parseFromString(content, "image/svg+xml")
@@ -33,13 +33,11 @@ function SvgRenderer({ content }: { content: string }) {
         svg.style.maxWidth = "100%"
         svg.style.maxHeight = "100%"
 
-        return svg.outerHTML
+        setProcessedSvg(svg.outerHTML)
       }
     } catch {
-      // If parsing fails, return original content
+      // If parsing fails, keep original content
     }
-
-    return content
   }, [content])
 
   // Render SVG in sandboxed iframe to prevent XSS attacks
