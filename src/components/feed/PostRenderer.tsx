@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import type { ContentType } from "@/types/database"
 
 interface PostRendererProps {
@@ -9,34 +9,38 @@ interface PostRendererProps {
 }
 
 function SvgRenderer({ content }: { content: string }) {
-  const [processedSvg, setProcessedSvg] = useState(content)
-
-  useEffect(() => {
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(content, "image/svg+xml")
-    const svg = doc.querySelector("svg")
-    if (svg) {
-      // Ensure viewBox exists
-      if (!svg.getAttribute("viewBox")) {
-        const w = svg.getAttribute("width") || "400"
-        const h = svg.getAttribute("height") || "400"
-        svg.setAttribute("viewBox", `0 0 ${parseInt(w)} ${parseInt(h)}`)
-      }
-      // Remove fixed dimensions, make responsive
-      svg.removeAttribute("width")
-      svg.removeAttribute("height")
-      svg.style.width = "100%"
-      svg.style.height = "100%"
-      svg.style.maxWidth = "100%"
-      svg.style.maxHeight = "100%"
+  // Render SVG in sandboxed iframe to prevent XSS attacks
+  const svgDoc = `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      box-sizing: border-box;
     }
-    setProcessedSvg(doc.documentElement.outerHTML)
-  }, [content])
+    svg {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+    }
+  </style>
+</head>
+<body>${content}</body>
+</html>`
 
   return (
-    <div
-      className="w-full h-full flex items-center justify-center p-4"
-      dangerouslySetInnerHTML={{ __html: processedSvg }}
+    <iframe
+      srcDoc={svgDoc}
+      className="w-full h-full border-0"
+      sandbox="allow-scripts"
+      title="SVG Content"
     />
   )
 }
