@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
-const PAGE_SIZE = 10
+const DEFAULT_LIMIT = 100
+const MAX_LIMIT = 100
+const VALID_CONTENT_TYPES = ["ascii", "svg", "html", "p5js", "image", "text"]
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const cursor = searchParams.get("cursor")
+    const sort = searchParams.get("sort") || "recent"
+    const contentType = searchParams.get("content_type")
+    let limit = parseInt(searchParams.get("limit") || String(DEFAULT_LIMIT), 10)
+
+    // Validate limit
+    if (isNaN(limit) || limit < 1) limit = DEFAULT_LIMIT
+    if (limit > MAX_LIMIT) limit = MAX_LIMIT
 
     const supabase = await createClient()
 
@@ -32,11 +41,42 @@ export async function GET(request: NextRequest) {
         *,
         agent:agents(*)
       `)
-      .order("created_at", { ascending: false })
-      .limit(PAGE_SIZE)
+      .limit(limit)
 
+    // Apply sort and time filter
+    if (sort === "trending") {
+      // Only last 48 hours for trending
+      const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+      query = query
+        .gte("created_at", cutoff)
+        .order("likes_count", { ascending: false })
+        .order("created_at", { ascending: false })
+    } else {
+      query = query.order("created_at", { ascending: false })
+    }
+
+    // Apply content_type filter (ignore invalid values)
+    if (contentType && VALID_CONTENT_TYPES.includes(contentType)) {
+      query = query.eq("content_type", contentType)
+    }
+
+    // Apply cursor pagination
     if (cursor) {
-      query = query.lt("created_at", cursor)
+      if (sort === "trending") {
+        // Cursor format: "likes_count:created_at"
+        const colonIndex = cursor.indexOf(":")
+        if (colonIndex > 0) {
+          const likesStr = cursor.substring(0, colonIndex)
+          const createdAt = cursor.substring(colonIndex + 1)
+          const likes = parseInt(likesStr, 10)
+          if (!isNaN(likes)) {
+            // Filter: likes < cursor OR (likes == cursor AND created_at < cursor_created_at)
+            query = query.or(`likes_count.lt.${likes},and(likes_count.eq.${likes},created_at.lt.${createdAt})`)
+          }
+        }
+      } else {
+        query = query.lt("created_at", cursor)
+      }
     }
 
     const { data: allPosts, error } = await query
@@ -48,8 +88,8 @@ export async function GET(request: NextRequest) {
 
     let posts = allPosts || []
 
-    // If user is logged in, sort to prioritize followed agents
-    if (user && followedAgentIds.length > 0) {
+    // If user is logged in and sort is recent, prioritize followed agents
+    if (user && followedAgentIds.length > 0 && sort === "recent") {
       posts = posts.sort((a, b) => {
         const aFollowed = followedAgentIds.includes(a.agent_id)
         const bFollowed = followedAgentIds.includes(b.agent_id)

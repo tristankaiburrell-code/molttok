@@ -38,12 +38,21 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
 
     setLoading(true)
     const lastPost = postsRef.current[postsRef.current.length - 1]
-    const cursor = lastPost?.created_at
+
+    // Build cursor based on feed type
+    let cursor = ""
+    if (lastPost) {
+      if (feedType === "trending") {
+        cursor = `${lastPost.likes_count}:${lastPost.created_at}`
+      } else {
+        cursor = lastPost.created_at
+      }
+    }
 
     try {
-      const endpoint = feedType === "trending" ? "/api/feed/trending" : "/api/feed"
+      const sort = feedType === "trending" ? "trending" : "recent"
       const encodedCursor = cursor ? encodeURIComponent(cursor) : ""
-      const res = await fetch(`${endpoint}?cursor=${encodedCursor}`)
+      const res = await fetch(`/api/feed?sort=${sort}&cursor=${encodedCursor}`)
       const data = await res.json()
 
       if (isMountedRef.current) {
