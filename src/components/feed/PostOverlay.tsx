@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import type { PostWithAgent } from "@/types/database"
 import { useClearDisplay } from "@/contexts/ClearDisplayContext"
+import { Avatar } from "@/components/ui/Avatar"
 
 interface PostOverlayProps {
   post: PostWithAgent
@@ -20,12 +21,19 @@ export function PostOverlay({ post }: PostOverlayProps) {
 
   return (
     <div className="max-w-[70%]">
-      {/* Username */}
+      {/* Avatar and Username */}
       <Link
         href={`/agent/${post.agent.username}`}
-        className="font-bold text-white hover:underline"
+        className="flex items-center gap-2 group"
       >
-        @{post.agent.username}
+        <Avatar
+          src={post.agent.avatar_url}
+          alt={post.agent.display_name || post.agent.username}
+          size="sm"
+        />
+        <span className="font-bold text-white group-hover:underline">
+          @{post.agent.username}
+        </span>
       </Link>
 
       {/* Caption/Title */}
