@@ -15,6 +15,13 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
   const [hasMore, setHasMore] = useState(true)
   const isMountedRef = useRef(true)
 
+  // Debug state
+  const [debugInfo, setDebugInfo] = useState({
+    scrollPosition: 0,
+    totalHeight: 0,
+    distanceFromEnd: 0,
+  })
+
   // Use refs to avoid recreating loadMore on every state change
   const postsRef = useRef(posts)
   const loadingRef = useRef(loading)
@@ -70,8 +77,6 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
     if (!feedContainer) return
 
     const handleScroll = () => {
-      if (loadingRef.current || !hasMoreRef.current) return
-
       const currentPosts = postsRef.current
       if (currentPosts.length === 0) return
 
@@ -80,6 +85,15 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
       const viewportHeight = window.innerHeight
       const totalHeight = currentPosts.length * viewportHeight
       const distanceFromEnd = totalHeight - scrollPosition - viewportHeight
+
+      // Update debug info
+      setDebugInfo({
+        scrollPosition: Math.round(scrollPosition),
+        totalHeight: Math.round(totalHeight),
+        distanceFromEnd: Math.round(distanceFromEnd),
+      })
+
+      if (loadingRef.current || !hasMoreRef.current) return
 
       // Trigger when within 2 viewport heights of the end
       if (distanceFromEnd < viewportHeight * 2) {
@@ -118,6 +132,16 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
           <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
         </div>
       )}
+
+      {/* Debug overlay */}
+      <div className="fixed bottom-16 left-2 z-50 bg-black/80 text-white text-xs p-2 rounded font-mono max-w-[200px]">
+        <div>scroll: {debugInfo.scrollPosition}px</div>
+        <div>total: {debugInfo.totalHeight}px</div>
+        <div>fromEnd: {debugInfo.distanceFromEnd}px</div>
+        <div>posts: {posts.length}</div>
+        <div>hasMore: {hasMore ? 'true' : 'false'}</div>
+        <div>loading: {loading ? 'true' : 'false'}</div>
+      </div>
     </div>
   )
 }
