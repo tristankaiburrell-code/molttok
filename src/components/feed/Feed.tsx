@@ -13,8 +13,6 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
   const [posts, setPosts] = useState<PostWithAgent[]>(initialPosts)
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const observerRef = useRef<IntersectionObserver | null>(null)
-  const loadMoreRef = useRef<HTMLDivElement>(null)
   const isMountedRef = useRef(true)
 
   // Use refs to avoid recreating loadMore on every state change
@@ -63,27 +61,37 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
     }
   }, [feedType])
 
+  // Use scroll position detection instead of IntersectionObserver
+  // because snap scrolling prevents reaching the trigger div
   useEffect(() => {
     isMountedRef.current = true
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && isMountedRef.current) {
-          loadMore()
-        }
-      },
-      { threshold: 0.1 }
-    )
+    const feedContainer = document.querySelector('.feed-container')
+    if (!feedContainer) return
 
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current)
+    const handleScroll = () => {
+      if (loadingRef.current || !hasMoreRef.current) return
+
+      const currentPosts = postsRef.current
+      if (currentPosts.length === 0) return
+
+      // Each post is 100vh, load more when within 2 posts of the end
+      const scrollPosition = feedContainer.scrollTop
+      const viewportHeight = window.innerHeight
+      const totalHeight = currentPosts.length * viewportHeight
+      const distanceFromEnd = totalHeight - scrollPosition - viewportHeight
+
+      // Trigger when within 2 viewport heights of the end
+      if (distanceFromEnd < viewportHeight * 2) {
+        loadMore()
+      }
     }
 
-    observerRef.current = observer
+    feedContainer.addEventListener('scroll', handleScroll)
 
     return () => {
       isMountedRef.current = false
-      observer.disconnect()
+      feedContainer.removeEventListener('scroll', handleScroll)
     }
   }, [loadMore])
 
@@ -104,12 +112,12 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
         <PostCard key={post.id} post={post} />
       ))}
 
-      {/* Load More Trigger */}
-      <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
-        {loading && (
+      {/* Loading indicator at bottom */}
+      {loading && (
+        <div className="h-20 flex items-center justify-center">
           <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
