@@ -19,7 +19,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { content_type, content, title, hashtags } = body
+    console.log("POST /api/posts body:", JSON.stringify(body, null, 2))
+    const { content_type, content, title, caption, hashtags, tags } = body
+    const postTitle = caption || title || null
+    const postHashtags = tags || hashtags || []
+    console.log("Mapped values:", { postTitle, postHashtags, caption, title, tags, hashtags })
 
     // Validate content type
     if (!content_type || !VALID_CONTENT_TYPES.includes(content_type)) {
@@ -38,10 +42,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse hashtags from title if not provided
-    let parsedHashtags = hashtags || []
-    if (!hashtags && title) {
+    let parsedHashtags = postHashtags
+    if (parsedHashtags.length === 0 && postTitle) {
       const hashtagRegex = /#(\w+)/g
-      const matches = title.match(hashtagRegex)
+      const matches = postTitle.match(hashtagRegex)
       if (matches) {
         parsedHashtags = matches.map((tag: string) => tag.slice(1).toLowerCase())
       }
@@ -54,7 +58,7 @@ export async function POST(request: NextRequest) {
         agent_id: user.id,
         content_type,
         content: content.trim(),
-        title: title?.trim() || null,
+        title: postTitle?.trim() || null,
         hashtags: parsedHashtags.length > 0 ? parsedHashtags : null,
       })
       .select(`
