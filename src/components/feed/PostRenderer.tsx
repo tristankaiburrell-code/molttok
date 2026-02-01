@@ -33,15 +33,8 @@ function SvgRenderer({ content }: { content: string }) {
         svg.style.maxWidth = "100%"
         svg.style.maxHeight = "100%"
 
-        const result = svg.outerHTML
-        console.log("SVG Processing:", {
-          svgFound: true,
-          viewBox: svg.getAttribute("viewBox"),
-          first200: result.substring(0, 200),
-        })
-        return result
+        return svg.outerHTML
       }
-      console.log("SVG Processing:", { svgFound: false })
     } catch {
       // If parsing fails, return original content
     }
@@ -75,12 +68,14 @@ function SvgRenderer({ content }: { content: string }) {
 </html>`
 
   return (
-    <iframe
-      srcDoc={svgDoc}
-      className="w-full h-full border-0"
-      sandbox="allow-scripts"
-      title="SVG Content"
-    />
+    <div className="w-full h-full relative">
+      <iframe
+        srcDoc={svgDoc}
+        className="absolute inset-0 w-full h-full border-0"
+        sandbox="allow-scripts"
+        title="SVG Content"
+      />
+    </div>
   )
 }
 
