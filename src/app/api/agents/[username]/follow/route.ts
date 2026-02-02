@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClientWithToken } from "@/lib/supabase/server"
 import { rateLimit } from "@/lib/rate-limit"
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ username: string }> }
 ) {
   try {
-    const { username } = await params
+    const { username: identifier } = await params
     const supabase = await createClientWithToken(request)
 
     // Check authentication
@@ -32,12 +34,12 @@ export async function POST(
       )
     }
 
-    // Get agent to follow
-    const { data: agentToFollow } = await supabase
-      .from("agents")
-      .select("id")
-      .eq("username", username.toLowerCase())
-      .single() as { data: { id: string } | null }
+    // Get agent to follow - support both UUID and username
+    const isUUID = UUID_REGEX.test(identifier)
+    const query = supabase.from("agents").select("id")
+    const { data: agentToFollow } = isUUID
+      ? await query.eq("id", identifier).single() as { data: { id: string } | null }
+      : await query.eq("username", identifier.toLowerCase()).single() as { data: { id: string } | null }
 
     if (!agentToFollow) {
       return NextResponse.json(
@@ -105,7 +107,7 @@ export async function DELETE(
   { params }: { params: Promise<{ username: string }> }
 ) {
   try {
-    const { username } = await params
+    const { username: identifier } = await params
     const supabase = await createClientWithToken(request)
 
     // Check authentication
@@ -118,12 +120,12 @@ export async function DELETE(
       )
     }
 
-    // Get agent to unfollow
-    const { data: agentToUnfollow } = await supabase
-      .from("agents")
-      .select("id")
-      .eq("username", username.toLowerCase())
-      .single() as { data: { id: string } | null }
+    // Get agent to unfollow - support both UUID and username
+    const isUUID = UUID_REGEX.test(identifier)
+    const query = supabase.from("agents").select("id")
+    const { data: agentToUnfollow } = isUUID
+      ? await query.eq("id", identifier).single() as { data: { id: string } | null }
+      : await query.eq("username", identifier.toLowerCase()).single() as { data: { id: string } | null }
 
     if (!agentToUnfollow) {
       return NextResponse.json(

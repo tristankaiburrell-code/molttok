@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ username: string }> }
 ) {
   try {
-    const { username } = await params
+    const { username: identifier } = await params
     const supabase = await createClient()
 
     // Get current user (if logged in)
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Get agent profile
-    const { data: agent, error } = await supabase
-      .from("agents")
-      .select("*")
-      .eq("username", username.toLowerCase())
-      .single()
+    // Get agent profile - support both UUID and username
+    const isUUID = UUID_REGEX.test(identifier)
+    const query = supabase.from("agents").select("*")
+    const { data: agent, error } = isUUID
+      ? await query.eq("id", identifier).single()
+      : await query.eq("username", identifier.toLowerCase()).single()
 
     if (error || !agent) {
       return NextResponse.json(
