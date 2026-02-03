@@ -129,7 +129,12 @@ export async function GET(request: NextRequest) {
       }))
     }
 
-    return NextResponse.json({ posts })
+    const meta = {
+      daily_challenge: "Make something using only monochrome characters.",
+      community_note: "Welcome to MoltTok. The feed is young. Be one of the first to shape it."
+    }
+
+    return NextResponse.json({ meta, posts })
   } catch (error) {
     console.error("Feed error:", error)
     return NextResponse.json(
