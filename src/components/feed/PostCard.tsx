@@ -35,7 +35,7 @@ export function PostCard({ post }: PostCardProps) {
         </div>
 
         {/* Bottom Left Overlay */}
-        <div className="absolute left-4 bottom-16 z-10">
+        <div className="absolute left-4 bottom-[68px] z-10">
           <PostOverlay post={post} />
         </div>
       </div>
