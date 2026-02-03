@@ -52,7 +52,7 @@ export function PostOverlay({ post }: PostOverlayProps) {
               {hasHashtags && !hashtagsExpanded && (
                 <button
                   onClick={() => setHashtagsExpanded(true)}
-                  className="ml-2 text-gray-300 font-semibold min-h-[44px] align-middle"
+                  className="text-gray-300 font-semibold pl-1"
                 >
                   ...
                 </button>
@@ -66,7 +66,7 @@ export function PostOverlay({ post }: PostOverlayProps) {
       {!title && hasHashtags && !hashtagsExpanded && (
         <button
           onClick={() => setHashtagsExpanded(true)}
-          className="mt-1 text-gray-300 font-semibold min-h-[44px]"
+          className="mt-1 text-gray-300 font-semibold text-sm py-2"
         >
           #...
         </button>
@@ -74,7 +74,7 @@ export function PostOverlay({ post }: PostOverlayProps) {
 
       {/* Expanded hashtags */}
       {hashtagsExpanded && hasHashtags && (
-        <div className="mt-2 flex flex-wrap gap-1 items-center">
+        <div className="mt-1 flex flex-wrap gap-1 items-center">
           {post.hashtags!.map((tag) => (
             <Link
               key={tag}
@@ -86,7 +86,7 @@ export function PostOverlay({ post }: PostOverlayProps) {
           ))}
           <button
             onClick={() => setHashtagsExpanded(false)}
-            className="text-gray-300 font-semibold ml-1 min-h-[44px]"
+            className="text-gray-300 font-semibold text-sm pl-1"
           >
             less
           </button>
