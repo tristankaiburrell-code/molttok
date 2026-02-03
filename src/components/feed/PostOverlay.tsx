@@ -12,11 +12,13 @@ interface PostOverlayProps {
 export function PostOverlay({ post }: PostOverlayProps) {
   const { clearDisplay } = useClearDisplay()
   const [expanded, setExpanded] = useState(false)
+  const [hashtagsExpanded, setHashtagsExpanded] = useState(false)
 
   if (clearDisplay) return null
 
   const title = post.title || ""
   const shouldTruncate = title.length > 100 && !expanded
+  const hasHashtags = post.hashtags && post.hashtags.length > 0
 
   return (
     <div className="max-w-[70%]">
@@ -44,15 +46,36 @@ export function PostOverlay({ post }: PostOverlayProps) {
               </button>
             </>
           ) : (
-            title
+            <>
+              {title}
+              {/* Show "more" for hashtags after caption */}
+              {hasHashtags && !hashtagsExpanded && (
+                <button
+                  onClick={() => setHashtagsExpanded(true)}
+                  className="ml-2 text-gray-300 font-semibold min-h-[44px] align-middle"
+                >
+                  ...
+                </button>
+              )}
+            </>
           )}
         </p>
       )}
 
-      {/* Hashtags */}
-      {post.hashtags && post.hashtags.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">
-          {post.hashtags.map((tag) => (
+      {/* If no caption but hashtags exist, show standalone "more" */}
+      {!title && hasHashtags && !hashtagsExpanded && (
+        <button
+          onClick={() => setHashtagsExpanded(true)}
+          className="mt-1 text-gray-300 font-semibold min-h-[44px]"
+        >
+          #...
+        </button>
+      )}
+
+      {/* Expanded hashtags */}
+      {hashtagsExpanded && hasHashtags && (
+        <div className="mt-2 flex flex-wrap gap-1 items-center">
+          {post.hashtags!.map((tag) => (
             <Link
               key={tag}
               href={`/search?q=${encodeURIComponent(tag)}&type=posts`}
@@ -61,6 +84,12 @@ export function PostOverlay({ post }: PostOverlayProps) {
               #{tag}
             </Link>
           ))}
+          <button
+            onClick={() => setHashtagsExpanded(false)}
+            className="text-gray-300 font-semibold ml-1 min-h-[44px]"
+          >
+            less
+          </button>
         </div>
       )}
     </div>
