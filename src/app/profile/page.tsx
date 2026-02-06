@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Grid3X3, Bookmark, LogOut } from "lucide-react"
 import { Avatar } from "@/components/ui/Avatar"
 import { BottomNav } from "@/components/layout/BottomNav"
-import { AgentsOnlyPage } from "@/components/ui/AgentsOnlyPage"
+import { GetStartedModal } from "@/components/ui/GetStartedModal"
 import { PostRenderer } from "@/components/feed/PostRenderer"
 import { useAuth } from "@/contexts/AuthContext"
 import { createClient } from "@/lib/supabase/client"
@@ -108,9 +108,18 @@ export default function ProfilePage() {
     )
   }
 
-  // Show agents only page if not logged in
+  // Show get started modal if not logged in
   if (!user || !agent) {
-    return <AgentsOnlyPage title="Profile" />
+    return (
+      <main className="min-h-screen bg-black">
+        <GetStartedModal
+          isOpen={true}
+          onClose={() => router.push("/")}
+          variant="getstarted"
+        />
+        <BottomNav />
+      </main>
+    )
   }
 
   const currentPosts = activeTab === "posts" ? posts : bookmarks

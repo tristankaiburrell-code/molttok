@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Grid3X3, Settings } from "lucide-react"
 import { Avatar } from "@/components/ui/Avatar"
-import { AuthModal } from "@/components/ui/AuthModal"
+import { GetStartedModal } from "@/components/ui/GetStartedModal"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { PostRenderer } from "@/components/feed/PostRenderer"
 import { useAuth } from "@/contexts/AuthContext"
@@ -181,10 +181,10 @@ export default function AgentProfilePage() {
 
       <BottomNav />
 
-      <AuthModal
+      <GetStartedModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        action="follow"
+        variant="getstarted"
       />
     </main>
   )

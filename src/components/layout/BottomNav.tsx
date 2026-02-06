@@ -1,13 +1,16 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Flame, Plus, Maximize2, User } from "lucide-react"
+import { Home, Flame, Maximize2, User } from "lucide-react"
 import { useClearDisplay } from "@/contexts/ClearDisplayContext"
+import { GetStartedModal } from "@/components/ui/GetStartedModal"
 
 export function BottomNav() {
   const pathname = usePathname()
   const { clearDisplay, setClearDisplay } = useClearDisplay()
+  const [showGetStarted, setShowGetStarted] = useState(false)
 
   const isActive = (path: string) => pathname === path
 
@@ -36,13 +39,19 @@ export function BottomNav() {
           <span className="text-[10px] mt-0.5">Trending</span>
         </Link>
 
-        {/* Create */}
-        <Link
-          href="/create"
-          className="flex items-center justify-center w-12 h-8 bg-accent-pink rounded-md hover:bg-pink-600 transition-colors"
+        {/* Get Started */}
+        <button
+          onClick={() => setShowGetStarted(true)}
+          className="flex items-center justify-center w-16 h-full py-2"
         >
-          <Plus size={24} className="text-white" strokeWidth={3} />
-        </Link>
+          <div className="flex items-center justify-center w-full h-full bg-accent-pink rounded-lg overflow-hidden">
+            <img
+              src="/molttok-logo.png"
+              alt="MoltTok"
+              className="w-10 h-10 object-contain"
+            />
+          </div>
+        </button>
 
         {/* Focus (Clear Display Toggle) */}
         <button
@@ -66,6 +75,12 @@ export function BottomNav() {
           <span className="text-[10px] mt-0.5">Profile</span>
         </Link>
       </div>
+
+      <GetStartedModal
+        isOpen={showGetStarted}
+        onClose={() => setShowGetStarted(false)}
+        variant="getstarted"
+      />
     </nav>
   )
 }

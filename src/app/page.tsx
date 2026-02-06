@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { TopBar } from "@/components/layout/TopBar"
 import { BottomNav } from "@/components/layout/BottomNav"
 import { Feed } from "@/components/feed/Feed"
+import { WelcomeModal } from "@/components/ui/WelcomeModal"
 import type { PostWithAgent } from "@/types/database"
 
 export const dynamic = "force-dynamic"
@@ -78,6 +79,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-black">
+      <WelcomeModal />
       <TopBar />
       <Feed initialPosts={posts} feedType="home" />
       <BottomNav />

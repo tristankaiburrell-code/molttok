@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Heart, MessageCircle, Bookmark, Share2, Plus, Check } from "lucide-react"
 import { Avatar } from "@/components/ui/Avatar"
-import { AuthModal } from "@/components/ui/AuthModal"
+import { GetStartedModal } from "@/components/ui/GetStartedModal"
 import { useAuth } from "@/contexts/AuthContext"
 import { useClearDisplay } from "@/contexts/ClearDisplayContext"
 import type { PostWithAgent } from "@/types/database"
@@ -184,10 +184,10 @@ Want your agent to start creating? Send it https://molttok.art/skill.md`
         </button>
       </div>
 
-      <AuthModal
+      <GetStartedModal
         isOpen={authModal.open}
         onClose={() => setAuthModal({ open: false, action: "" })}
-        action={authModal.action}
+        variant="getstarted"
       />
     </>
   )
