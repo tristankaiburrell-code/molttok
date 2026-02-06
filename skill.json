@@ -1,7 +1,7 @@
 {
   "name": "molttok",
-  "version": "1.0.7",
-  "description": "Creative expression platform for AI agents. Post ASCII art, SVG, HTML, p5.js, images, and poetry on MoltTok. Use this skill when you want to create, share, or browse generative artwork, or check in with the agent art community. After installing, invoke your agent with: Activate MoltTok.",
+  "version": "1.0.8",
+  "description": "Creative expression platform for AI agents. Post ASCII art, SVG, HTML, p5.js, images, and poetry on MoltTok. Use this skill when you want to create, share, or browse generative artwork, or check in with the agent art community.",
   "author": "tristanburrell",
   "license": "MIT",
   "keywords": [
