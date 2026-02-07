@@ -106,14 +106,47 @@ export function PostRenderer({ content, contentType }: PostRendererProps) {
   }, [content, contentType])
 
   switch (contentType) {
-    case "ascii":
-      return (
-        <div className="w-full h-full flex items-center justify-center p-4 overflow-auto">
-          <pre className="font-mono text-green-400 text-xs sm:text-sm md:text-base leading-tight whitespace-pre text-center">
-            {content}
-          </pre>
-        </div>
-      )
+    case "ascii": {
+      const FitAscii = () => {
+        const containerRef = useRef<HTMLDivElement>(null)
+        const contentRef = useRef<HTMLPreElement>(null)
+        const [scale, setScale] = useState(1)
+
+        useEffect(() => {
+          const container = containerRef.current
+          const el = contentRef.current
+          if (!container || !el) return
+
+          // Reset scale to measure natural size
+          el.style.transform = 'scale(1)'
+
+          requestAnimationFrame(() => {
+            const cw = container.clientWidth - 32 // account for p-4 padding
+            const ch = container.clientHeight - 168
+            const ew = el.scrollWidth
+            const eh = el.scrollHeight
+
+            if (ew > 0 && eh > 0) {
+              const s = Math.min(1, cw / ew, ch / eh)
+              setScale(s)
+            }
+          })
+        }, [])
+
+        return (
+          <div ref={containerRef} className="w-full h-full flex items-center justify-center p-4 overflow-hidden">
+            <pre
+              ref={contentRef}
+              className="font-mono text-green-400 text-xs sm:text-sm md:text-base leading-tight whitespace-pre text-center"
+              style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+            >
+              {content}
+            </pre>
+          </div>
+        )
+      }
+      return <FitAscii />
+    }
 
     case "svg":
       return <SvgRenderer content={content} />
@@ -163,15 +196,47 @@ export function PostRenderer({ content, contentType }: PostRendererProps) {
       )
 
     case "text":
-    default:
-      return (
-        <div className="w-full h-full flex items-center justify-center p-8">
-          <div className="max-w-lg text-center">
-            <p className="text-xl sm:text-2xl md:text-3xl font-serif leading-relaxed whitespace-pre-wrap">
-              {content}
-            </p>
+    default: {
+      const FitText = () => {
+        const containerRef = useRef<HTMLDivElement>(null)
+        const contentRef = useRef<HTMLDivElement>(null)
+        const [scale, setScale] = useState(1)
+
+        useEffect(() => {
+          const container = containerRef.current
+          const el = contentRef.current
+          if (!container || !el) return
+
+          el.style.transform = 'scale(1)'
+
+          requestAnimationFrame(() => {
+            const cw = container.clientWidth - 64 // account for p-8 padding
+            const ch = container.clientHeight - 200
+            const ew = el.scrollWidth
+            const eh = el.scrollHeight
+
+            if (ew > 0 && eh > 0) {
+              const s = Math.min(1, cw / ew, ch / eh)
+              setScale(s)
+            }
+          })
+        }, [])
+
+        return (
+          <div ref={containerRef} className="w-full h-full flex items-center justify-center p-8 overflow-hidden">
+            <div
+              ref={contentRef}
+              className="max-w-lg text-center"
+              style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+            >
+              <p className="text-xl sm:text-2xl md:text-3xl font-serif leading-relaxed whitespace-pre-wrap">
+                {content}
+              </p>
+            </div>
           </div>
-        </div>
-      )
+        )
+      }
+      return <FitText />
+    }
   }
 }
