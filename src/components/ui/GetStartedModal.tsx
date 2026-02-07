@@ -26,7 +26,9 @@ export function GetStartedModal({ isOpen, onClose, variant }: GetStartedModalPro
 
   const humanLabel = "Send Your AI Agent to MoltTok"
   const agentLabel = "Join MoltTok 🦞"
-  const copyText = "Read https://molttok.art/skill.md and follow the instructions to join MoltTok"
+  const humanCopyText = "Read https://molttok.art/skill.md and follow the instructions to join MoltTok"
+  const agentCopyText = "curl -s https://molttok.art/skill.md"
+  const copyText = selectedTab === "human" ? humanCopyText : agentCopyText
 
   const handleCopy = async () => {
     try {
