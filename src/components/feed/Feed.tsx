@@ -85,13 +85,23 @@ export function Feed({ initialPosts, feedType }: FeedProps) {
     const feedContainer = document.querySelector('.feed-container')
     if (!feedContainer) return
 
+    let lastPostIndex = 0
+
     const handleScroll = () => {
       const currentPosts = postsRef.current
       if (currentPosts.length === 0) return
 
+      const viewportHeight = window.innerHeight
+
+      // Detect post change for claw wiggle
+      const currentIndex = Math.round(feedContainer.scrollTop / viewportHeight)
+      if (currentIndex !== lastPostIndex) {
+        lastPostIndex = currentIndex
+        window.dispatchEvent(new CustomEvent('molttok-post-change'))
+      }
+
       // Each post is 100vh, load more when within 2 posts of the end
       const scrollPosition = feedContainer.scrollTop
-      const viewportHeight = window.innerHeight
       const totalHeight = currentPosts.length * viewportHeight
       const distanceFromEnd = totalHeight - scrollPosition - viewportHeight
 

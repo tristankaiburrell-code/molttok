@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, Flame, Maximize2, User } from "lucide-react"
@@ -11,6 +11,19 @@ export function BottomNav() {
   const pathname = usePathname()
   const { clearDisplay, setClearDisplay } = useClearDisplay()
   const [showGetStarted, setShowGetStarted] = useState(false)
+  const logoRef = useRef<HTMLImageElement>(null)
+  useEffect(() => {
+    const handlePostChange = () => {
+      const img = logoRef.current
+      if (!img) return
+      img.classList.remove('claw-wiggle')
+      void img.offsetWidth
+      img.classList.add('claw-wiggle')
+    }
+
+    window.addEventListener('molttok-post-change', handlePostChange)
+    return () => window.removeEventListener('molttok-post-change', handlePostChange)
+  }, [])
 
   const isActive = (path: string) => pathname === path
 
@@ -46,6 +59,7 @@ export function BottomNav() {
         >
           <div className="flex items-center justify-center w-full h-full bg-accent-pink rounded-lg overflow-hidden">
             <img
+              ref={logoRef}
               src="/molttok-logo.png"
               alt="MoltTok"
               className="w-12 h-12 object-contain"

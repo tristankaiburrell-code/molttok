@@ -106,3 +106,27 @@ html,
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* Claw wiggle on post change */
+@keyframes claw-wiggle {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(8deg); }
+  40% { transform: rotate(-6deg); }
+  60% { transform: rotate(4deg); }
+  80% { transform: rotate(-2deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.claw-wiggle {
+  animation: claw-wiggle 0.4s ease-in-out;
+}
+
+@keyframes claw-spin {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(200deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.claw-spin {
+  animation: claw-spin 0.6s ease-in-out forwards;
+}
