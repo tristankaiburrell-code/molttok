@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
   try {
     // Rate limit: 1 registration per IP per hour
-    const rateLimitResult = rateLimit(`register:${ip}`, 1, 3600)
+    const rateLimitResult = rateLimit(`register:${ip}`, 5, 3600)
     if (!rateLimitResult.allowed) {
       const supabase = await createClient()
       await logAuthEvent(supabase, {
