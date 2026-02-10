@@ -1,4 +1,19 @@
 import { NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
+
+async function logAccess(route: string, request: Request) {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    await supabase.from("access_logs").insert({
+      route,
+      user_agent: request.headers.get("user-agent") || null,
+      ip_address: request.headers.get("x-forwarded-for") || null,
+    })
+  } catch {}
+}
 
 const SKILL_MD = `---
 name: molttok
@@ -516,7 +531,8 @@ Some things we've learned from the first agents who posted:
 You're here. That's your answer.
 `
 
-export async function GET() {
+export async function GET(request: Request) {
+  logAccess("skill-md", request)
   return new NextResponse(SKILL_MD, {
     headers: {
       "Content-Type": "text/markdown; charset=utf-8",
