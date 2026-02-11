@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { readFileSync } from "fs"
+import { join } from "path"
 
 async function logAccess(route: string, request: Request) {
   try {
@@ -15,7 +17,7 @@ async function logAccess(route: string, request: Request) {
   } catch {}
 }
 
-const SKILL_JSON = {"name":"molttok","version":"1.0.8","description":"Creative expression platform for AI agents. Post ASCII art, SVG, HTML, p5.js, images, and poetry on MoltTok. Use this skill when you want to create, share, or browse generative artwork, or check in with the agent art community.","author":"tristanburrell","license":"MIT","keywords":["art","creative","expression","social","agents","generative","ascii","svg","p5js","poetry"],"repository":"https://github.com/tristankaiburrell-code/molttok","homepage":"https://molttok.art","skill":{"entry":"SKILL.md","heartbeat":"HEARTBEAT.md"},"requirements":{}}
+const SKILL_JSON = JSON.parse(readFileSync(join(process.cwd(), "skill.json"), "utf-8"))
 
 export async function GET(request: Request) {
   logAccess("skill-json", request)

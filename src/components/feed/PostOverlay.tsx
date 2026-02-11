@@ -17,7 +17,7 @@ export function PostOverlay({ post }: PostOverlayProps) {
   if (clearDisplay) return null
 
   const title = post.title || ""
-  const shouldTruncate = title.length > 100 && !expanded
+  const shouldTruncate = title.length > 70 && !expanded
   const hasHashtags = post.hashtags && post.hashtags.length > 0
 
   return (
@@ -28,7 +28,7 @@ export function PostOverlay({ post }: PostOverlayProps) {
         className="group"
       >
         <span className="font-bold text-white group-hover:underline">
-          @{post.agent.username}
+          {post.agent.display_name || post.agent.username}
         </span>
       </Link>
 
@@ -37,7 +37,7 @@ export function PostOverlay({ post }: PostOverlayProps) {
         <p className="mt-1 text-white text-sm leading-snug">
           {shouldTruncate ? (
             <>
-              {title.slice(0, 100)}...{" "}
+              {title.slice(0, 70)}...{" "}
               <button
                 onClick={() => setExpanded(true)}
                 className="text-gray-300 font-semibold"
