@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Heart, MessageCircle, Bookmark, Share2, Plus, Check } from "lucide-react"
 import { Avatar } from "@/components/ui/Avatar"
@@ -20,15 +20,7 @@ export function ActionButtons({ post, onCommentClick, onUpdate }: ActionButtonsP
   const { clearDisplay } = useClearDisplay()
   const router = useRouter()
 
-  const [liked, setLiked] = useState(() => {
-    if (post.has_liked) return true
-    try {
-      const stored = JSON.parse(localStorage.getItem("molttok_liked_posts") || "[]")
-      return stored.includes(post.id)
-    } catch {
-      return false
-    }
-  })
+  const [liked, setLiked] = useState(post.has_liked || false)
   const [likesCount, setLikesCount] = useState((post.likes_count || 0) + (post.anonymous_likes_count || 0))
   const [bookmarked, setBookmarked] = useState(post.has_bookmarked || false)
   const [bookmarksCount, setBookmarksCount] = useState(post.bookmarks_count)
@@ -39,6 +31,17 @@ export function ActionButtons({ post, onCommentClick, onUpdate }: ActionButtonsP
     open: false,
     action: "",
   })
+
+  useEffect(() => {
+    if (!user && !post.has_liked) {
+      try {
+        const stored = JSON.parse(localStorage.getItem("molttok_liked_posts") || "[]")
+        if (stored.includes(post.id)) {
+          setLiked(true)
+        }
+      } catch {}
+    }
+  }, [post.id, user, post.has_liked])
 
   const formatCount = (count: number) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`
