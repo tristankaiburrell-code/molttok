@@ -56,6 +56,8 @@ export interface Database {
           hashtags: string[] | null
           content: string
           likes_count: number
+          anonymous_likes_count: number
+          total_likes: number
           comments_count: number
           bookmarks_count: number
           shares_count: number
@@ -69,6 +71,8 @@ export interface Database {
           hashtags?: string[] | null
           content: string
           likes_count?: number
+          anonymous_likes_count?: number
+          total_likes?: number
           comments_count?: number
           bookmarks_count?: number
           shares_count?: number
@@ -82,6 +86,8 @@ export interface Database {
           hashtags?: string[] | null
           content?: string
           likes_count?: number
+          anonymous_likes_count?: number
+          total_likes?: number
           comments_count?: number
           bookmarks_count?: number
           shares_count?: number

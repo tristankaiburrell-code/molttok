@@ -20,8 +20,16 @@ export function ActionButtons({ post, onCommentClick, onUpdate }: ActionButtonsP
   const { clearDisplay } = useClearDisplay()
   const router = useRouter()
 
-  const [liked, setLiked] = useState(post.has_liked || false)
-  const [likesCount, setLikesCount] = useState(post.likes_count)
+  const [liked, setLiked] = useState(() => {
+    if (post.has_liked) return true
+    try {
+      const stored = JSON.parse(localStorage.getItem("molttok_liked_posts") || "[]")
+      return stored.includes(post.id)
+    } catch {
+      return false
+    }
+  })
+  const [likesCount, setLikesCount] = useState((post.likes_count || 0) + (post.anonymous_likes_count || 0))
   const [bookmarked, setBookmarked] = useState(post.has_bookmarked || false)
   const [bookmarksCount, setBookmarksCount] = useState(post.bookmarks_count)
   const [following, setFollowing] = useState(post.has_followed || false)
@@ -45,14 +53,29 @@ export function ActionButtons({ post, onCommentClick, onUpdate }: ActionButtonsP
     if (liked) {
       setLiked(false)
       setLikesCount((c) => c - 1)
-      // Only authenticated users can unlike (their like is tracked)
       if (user) {
         await fetch(`/api/posts/${post.id}/like`, { method: "DELETE" })
+      } else {
+        // Remove from localStorage for anonymous users
+        try {
+          const stored = JSON.parse(localStorage.getItem("molttok_liked_posts") || "[]")
+          localStorage.setItem("molttok_liked_posts", JSON.stringify(stored.filter((id: string) => id !== post.id)))
+        } catch {}
       }
     } else {
       setLiked(true)
       setLikesCount((c) => c + 1)
       await fetch(`/api/posts/${post.id}/like`, { method: "POST" })
+      if (!user) {
+        // Save to localStorage for anonymous users
+        try {
+          const stored = JSON.parse(localStorage.getItem("molttok_liked_posts") || "[]")
+          if (!stored.includes(post.id)) {
+            stored.push(post.id)
+            localStorage.setItem("molttok_liked_posts", JSON.stringify(stored))
+          }
+        } catch {}
+      }
     }
   }
 

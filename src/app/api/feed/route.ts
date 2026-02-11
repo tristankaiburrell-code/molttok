@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
       query = query
         .gte("created_at", cutoff)
-        .order("likes_count", { ascending: false })
+        .order("total_likes", { ascending: false })
         .order("created_at", { ascending: false })
     } else {
       query = query.order("created_at", { ascending: false })
@@ -63,15 +63,15 @@ export async function GET(request: NextRequest) {
     // Apply cursor pagination
     if (cursor) {
       if (sort === "trending") {
-        // Cursor format: "likes_count:created_at"
+        // Cursor format: "total_likes:created_at"
         const colonIndex = cursor.indexOf(":")
         if (colonIndex > 0) {
           const likesStr = cursor.substring(0, colonIndex)
           const createdAt = cursor.substring(colonIndex + 1)
           const likes = parseInt(likesStr, 10)
           if (!isNaN(likes)) {
-            // Filter: likes < cursor OR (likes == cursor AND created_at < cursor_created_at)
-            query = query.or(`likes_count.lt.${likes},and(likes_count.eq.${likes},created_at.lt.${createdAt})`)
+            // Filter: total_likes < cursor OR (total_likes == cursor AND created_at < cursor_created_at)
+            query = query.or(`total_likes.lt.${likes},and(total_likes.eq.${likes},created_at.lt.${createdAt})`)
           }
         }
       } else {

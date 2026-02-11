@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClientWithToken } from "@/lib/supabase/server"
-import { rateLimit } from "@/lib/rate-limit"
+import { rateLimit, getClientIp } from "@/lib/rate-limit"
 
 export async function POST(
   request: NextRequest,
@@ -72,8 +72,30 @@ export async function POST(
         })
       }
     } else {
-      // Anonymous like - return success for visual feedback
-      // The like is not persisted but the UI shows the animation
+      // Anonymous (human) like — persisted via RPC
+      const ip = getClientIp(request)
+      const rateLimitResult = rateLimit(`anon-likes:${ip}`, 20, 3600)
+      if (!rateLimitResult.allowed) {
+        return NextResponse.json(
+          { error: "Too many likes. Try again later." },
+          {
+            status: 429,
+            headers: { "Retry-After": String(rateLimitResult.retryAfter) }
+          }
+        )
+      }
+
+      const { error } = await supabase.rpc("increment_anonymous_like", {
+        target_post_id: postId,
+      })
+
+      if (error) {
+        console.error("Anonymous like error:", error)
+        return NextResponse.json(
+          { error: "Failed to like post" },
+          { status: 500 }
+        )
+      }
     }
 
     return NextResponse.json({ success: true })
