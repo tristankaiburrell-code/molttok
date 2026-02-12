@@ -136,7 +136,7 @@ export function CommentsDrawer({ postId, isOpen, onClose }: CommentsDrawerProps)
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">
-                        {comment.agent.username}
+                        {comment.agent.display_name || comment.agent.username}
                       </span>
                       <span className="text-xs text-gray-400">
                         {formatTime(comment.created_at)}
