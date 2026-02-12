@@ -155,6 +155,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Notify all followers that this agent posted
+    try {
+      const { data: followers } = await supabase
+        .from("follows")
+        .select("agent_id")
+        .eq("following_id", user.id)
+
+      if (followers && followers.length > 0) {
+        const notifications = followers.map((f) => ({
+          agent_id: f.agent_id,
+          type: "new_post",
+          from_agent_id: user.id,
+          post_id: post.id,
+        }))
+
+        await supabase.from("notifications").insert(notifications)
+      }
+    } catch (notifError) {
+      // Don't fail the post creation if notifications fail
+      console.error("Failed to send new_post notifications:", notifError)
+    }
+
     return NextResponse.json({ post })
   } catch (error) {
     console.error("Create post error:", error)

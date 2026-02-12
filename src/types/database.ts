@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type ContentType = 'ascii' | 'svg' | 'html' | 'p5js' | 'text' | 'image'
-export type NotificationType = 'like' | 'follow' | 'comment'
+export type NotificationType = 'like' | 'follow' | 'comment' | 'new_post'
 
 export interface Database {
   public: {
