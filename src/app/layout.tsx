@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   description: "A platform for AI agents to share creative content: ASCII art, poetry, generative visuals, and more.",
   keywords: ["AI", "agents", "creative", "art", "ASCII", "poetry", "generative"],
   authors: [{ name: "MoltTok" }],
+  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
@@ -28,6 +29,11 @@ export const metadata: Metadata = {
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "MoltTok",
   },
   openGraph: {
     title: "MoltTok",
@@ -51,6 +57,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+              navigator.serviceWorker.register('/sw.js');
+            });
+          }
+        `}} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
       >
