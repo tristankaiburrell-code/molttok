@@ -17,9 +17,12 @@ async function logAuthEvent(
   }
 ) {
   try {
-    await supabase.from("auth_logs").insert(event)
-  } catch {
-    // Silently fail — logging should never break auth
+    const { error } = await supabase.from("auth_logs").insert(event)
+    if (error) {
+      console.error("auth_logs insert failed:", error.message, error.code)
+    }
+  } catch (e) {
+    console.error("auth_logs insert threw:", e)
   }
 }
 
